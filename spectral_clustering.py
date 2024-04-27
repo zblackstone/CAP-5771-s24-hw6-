@@ -34,6 +34,62 @@ def spectral(
     - ARI: float, adjusted Rand index
     - eigenvalues: eigenvalues of the Laplacian matrix
     """
+    sigma = params_dict['sigma']
+    k = params_dict['k']
+
+    dist_sq = np.sum((data[:, np.newaxis, :] - data[np.newaxis, :, :]) ** 2, axis=-1)
+    affinity_matrix = np.exp(-dist_sq / (2 * sigma ** 2))
+
+    D = np.diag(affinity_matrix.sum(axis=1))
+    L = D - affinity_matrix
+
+    eigenvalues, eigenvectors = eigh(L)
+    idx = np.argsort(eigenvalues)[:k]
+    V = eigenvectors[:, idx]
+
+    from scipy.cluster.vq import kmeans2
+    centroids, labels_pred = kmeans2(V, k, iter=20, minit='points')
+
+    SSE = np.sum((V - centroids[labels_pred]) ** 2)
+
+    def adjusted_rand_index(true_labels, predicted_labels):
+        """
+        Compute the Adjusted Rand Index (ARI) between two clusterings.
+    
+        Arguments:
+        - true_labels: true cluster labels
+        - predicted_labels: predicted cluster labels
+    
+        Returns:
+        - ARI: Adjusted Rand Index
+        """
+        contingency_matrix = np.zeros((len(np.unique(true_labels)), len(np.unique(predicted_labels))))
+        
+        for i, true_label in enumerate(np.unique(true_labels)):
+            true_idx = (true_labels == true_label)
+            for j, pred_label in enumerate(np.unique(predicted_labels)):
+                pred_idx = (predicted_labels == pred_label)
+                contingency_matrix[i, j] = np.sum(true_idx & pred_idx)
+    
+        a = np.sum(contingency_matrix, axis=1)
+        b = np.sum(contingency_matrix, axis=0)
+        n = np.sum(contingency_matrix)
+        a_choose_2 = np.sum(a * (a - 1)) / 2
+        b_choose_2 = np.sum(b * (b - 1)) / 2
+        n_choose_2 = n * (n - 1) / 2
+    
+        # Compute Rand Index
+        rand_index = (np.sum(contingency_matrix ** 2) - (a_choose_2 + b_choose_2)) / 2
+    
+        # Expected Rand Index under the null hypothesis
+        expected_rand_index = (a_choose_2 * b_choose_2) / n_choose_2
+    
+        # Adjusted Rand Index
+        ARI = (rand_index - expected_rand_index) / (0.5 * (a_choose_2 + b_choose_2) - expected_rand_index)
+
+    return ARI
+
+    ARI = adjusted_rand_index(labels, computed_labels)
 
     computed_labels: NDArray[np.int32] | None = None
     SSE: float | None = None
@@ -45,7 +101,7 @@ def spectral(
 
 def spectral_clustering():
     """
-    Performs DENCLUE clustering on a dataset.
+    Performs Spectral clustering on a dataset.
 
     Returns:
         answers (dict): A dictionary containing the clustering results.
