@@ -117,8 +117,8 @@ def spectral_clustering():
     Returns:
         answers (dict): A dictionary containing the clustering results.
     """
-    data = np.load("question2_cluster_data.npy")
-    labels = np.load("question2_cluster_labels.npy")
+    data = np.load("question1_cluster_data.npy")
+    labels = np.load("question1_cluster_labels.npy")
     slice_size = 1000
     answers = {}
     num_pairs = 12
@@ -142,10 +142,8 @@ def spectral_clustering():
         computed_labels, SSE, ARI, eigenvalues = spectral(data[slice_size*i:slice_size*(i+1)], labels[slice_size*i:slice_size*(i+1)], params_dict)
         groups[i] = {"sigma": sigma, "xi": xi, "ARI": ARI, "SSE": SSE}
     highest_ARI = max(groups.items(), key=lambda x: x[1]["ARI"])
-    lowest_SSE = min(groups.items(), key=lambda x: x[1]["SSE"])
 
     sigmas_plot = [group["sigma"] for group in groups.values()]
-    xis_plot = [group["xi"] for group in groups.values()]
     SSEs_plot = [group["SSE"] for group in groups.values()]
     ARIs_plot = [group["ARI"] for group in groups.values()]
     
@@ -179,23 +177,22 @@ def spectral_clustering():
     # and \xi and the vertical axis. Color the points according to the SSE value
     # for the 1st plot and according to ARI in the second plot.
     plt.figure()
-    plot_SSE = plt.scatter(sigmas_plot, xis_plot, c=SSEs_plot)
+    plot_SSE = plt.scatter(sigmas_plot, SSEs_plot)
     plt.xlabel('sigma')
-    plt.ylabel('xi')
+    plt.ylabel('SSE')
     plt.title('Scatter Plot of SSE')
     plt.grid(True)
-    plt.colorbar(plot_SSE)
     plt.tight_layout()
     plt.show()
     answers["cluster scatterplot with smallest SSE"] = plot_SSE
 
     plt.figure()
-    plot_ARI = plt.scatter(sigmas_plot, xis_plot, c=ARIs_plot)
+    plot_ARI = plt.scatter(sigmas_plot, ARIs_plot)
     plt.xlabel('sigma')
-    plt.ylabel('xi')
+    plt.ylabel('ARI')
     plt.title('Scatter Plot of ARI')
     plt.grid(True)
-    plt.colorbar(plot_ARI)
+    plt.tight_layout()
     plt.show()
     answers["cluster scatterplot with largest ARI"] = plot_ARI
 
