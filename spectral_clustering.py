@@ -148,14 +148,7 @@ def spectral_clustering():
     xis_plot = [group["xi"] for group in groups.values()]
     SSEs_plot = [group["SSE"] for group in groups.values()]
     ARIs_plot = [group["ARI"] for group in groups.values()]
-    SSEs_plot_min = min(SSEs_plot)
-    ARIs_plot_min = min(ARIs_plot)
-    print(SSEs_plot)
-    print(SSEs_plot_min)
-    print(ARIs_plot)
-    print(ARIs_plot_min)
-
-    print(groups)
+    
     # For the spectral method, perform your calculations with 5 clusters.
     # In this case, there is only a single parameter, σ.
 
@@ -173,11 +166,14 @@ def spectral_clustering():
     # Identify the cluster with the lowest value of ARI. This implies
     # that you set the cluster number to 5 when applying the spectral
     # algorithm.
-    ARI_max_graph: float | None
-    ARI_max_graph = max(groups.keys(), key=lambda x: abs(groups[x]['ARI']))
-    print("Cluster with highest ARI:", ARI_max_graph)
+    ARI_min_cluster = min(groups.keys(), key = lambda x: abs(groups[x]['ARI']))
+    # print('Cluster with lowest ARI: ', ARI_min_cluster)
 
-    
+    ARI_max_graph = max(groups.keys(), key=lambda x: abs(groups[x]['ARI']))
+    # print("Cluster with highest ARI:", ARI_max_graph)
+
+    SSE_max_graph = max(groups.keys(), key = lambda x: abs(groups[x]['SSE']))
+    # print("Cluster with highest SSE:", SSE_min_graph)
     # Create two scatter plots using `matplotlib.pyplot`` where the two
     # axes are the parameters used, with \sigma on the horizontal axis
     # and \xi and the vertical axis. Color the points according to the SSE value
@@ -189,6 +185,7 @@ def spectral_clustering():
     plt.title('Scatter Plot of SSE')
     plt.grid(True)
     plt.colorbar(plot_SSE)
+    plt.tight_layout()
     plt.show()
     answers["cluster scatterplot with smallest SSE"] = plot_SSE
 
@@ -205,16 +202,27 @@ def spectral_clustering():
     # Choose the cluster with the largest value for ARI and plot it as a 2D scatter plot.
     # Do the same for the cluster with the smallest value of SSE.
     # All plots must have x and y labels, a title, and the grid overlay.
-    data_slice = data[slice_size * ARI_max_graph: slice_size * (ARI_max_graph + 1)]
-    print(data_slice)
+    data_slice_ARI_max = data[slice_size * ARI_max_graph: slice_size * (ARI_max_graph + 1)]
     plt.figure()
-    plt.scatter(data_slice[:, 0], data_slice[:, 1])
+    plt.scatter(data_slice_ARI_max[:, 0], data_slice_ARI_max[:, 1])
     plt.xlabel("X-Label")
     plt.ylabel("Y-Label")
-    plt.title(f'Cluster ({ARI_max_graph})')
+    plt.title(f'Cluster with highest ARI: {ARI_max_graph}')
     plt.grid(True)
+    plt.tight_layout()
     plt.show
-    
+
+
+    data_slice_SSE_max = data[slice_size * SSE_max_graph: slice_size * (SSE_max_graph + 1)]
+    print(data_slice_SSE_max)
+    plt.figure()
+    plt.scatter(data_slice_SSE_max[:, 0], data_slice_SSE_max[:, 1])
+    plt.xlabel('X-Label')
+    plt.ylabel('Y-Label')
+    plt.title(f'Cluster with highest SSE: {SSE_max_graph}')
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
 
     # Plot is the return value of a call to plt.scatter()
     # Plot of the eigenvalues (smallest to largest) as a line plot.
@@ -225,6 +233,7 @@ def spectral_clustering():
     plt.ylabel('Eigenvalue')
     plt.title('Eigenvalues of Laplacian Matrix')
     plt.grid(True)
+    plt.tight_layout()
     plt.show()
     answers["eigenvalue plot"] = plot_eig
 
