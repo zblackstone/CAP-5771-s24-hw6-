@@ -31,26 +31,24 @@ def adjusted_rand_index(labels_true, computed_labels) -> float:
     """
     
     # Create contingency table
-    contingency_table = np.histogram2d(
-        labels_true,
-        computed_labels,
-    )[0]
-
+    contingency_table = np.histogram2d(labels_true, computed_labels, bins=(np.unique(labels_true).size, np.unique(computed_labels).size))[0]
+    def comb(n):
+        return n * (n - 1) / 2
     # Sum over rows and columns
-    sum_combinations_rows = np.sum(
-        [np.sum(nj) * (np.sum(nj) - 1) / 2 for nj in contingency_table]
-    )
-    sum_combinations_cols = np.sum(
-        [np.sum(ni) * (np.sum(ni) - 1) / 2 for ni in contingency_table.T]
-    )
+    sum_combinations_rows = np.sum([comb(n) for n in np.sum(contingency_table, axis=1)])
+    sum_combinations_cols = np.sum([comb(n) for n in np.sum(contingency_table, axis=0)])
+
+    # Helper function to calculate combinations of 2
+    
 
     # Sum of combinations for all elements
     N = np.sum(contingency_table)
-    sum_combinations_total = N * (N - 1) / 2
+    sum_combinations_total = comb(N)
 
     # Calculate ARI
+    sum_combinations_within = np.sum([comb(n_ij) for n_ij in contingency_table.flatten()])
     ari = (
-        np.sum([np.sum(n_ij) * (np.sum(n_ij) - 1) / 2 for n_ij in contingency_table])
+        sum_combinations_within
         - (sum_combinations_rows * sum_combinations_cols) / sum_combinations_total
     ) / (
         (sum_combinations_rows + sum_combinations_cols) / 2
@@ -137,9 +135,9 @@ def spectral_clustering():
     # Generate 'num_pairs' pairs of ('sigma', 'xi') within the specified range
     sigmas = np.linspace(0.1, 10, num_pairs)
     xis = np.linspace(0.1, 10, num_pairs)  # Assuming 'xi' is another parameter you want to vary
-
+    ks = np.linspace(1, 5, 5)
     # Perform clustering for each pair of parameters
-    for i, (sigma, xi) in enumerate(zip(sigmas, xis)):
+    for i, (sigma, xi, k) in enumerate(zip(sigmas, xis, ks)):
         params_dict = {"sigma": sigma, "xi": xi, "k": 5}
         computed_labels, SSE, ARI, eigenvalues = spectral(data[slice_size*i:slice_size*(i+1)], labels[slice_size*i:slice_size*(i+1)], params_dict)
         groups[i] = {"sigma": sigma, "xi": xi, "ARI": ARI, "SSE": SSE}
@@ -150,15 +148,20 @@ def spectral_clustering():
     xis_plot = [group["xi"] for group in groups.values()]
     SSEs_plot = [group["SSE"] for group in groups.values()]
     ARIs_plot = [group["ARI"] for group in groups.values()]
+    SSEs_plot_min = min(SSEs_plot)
+    ARIs_plot_min = min(ARIs_plot)
+    print(SSEs_plot)
+    print(SSEs_plot_min)
+    print(ARIs_plot)
+    print(ARIs_plot_min)
 
-
-
+    print(groups)
     # For the spectral method, perform your calculations with 5 clusters.
     # In this case, there is only a single parameter, σ.
 
     # data for data group 0: data[0:10000]. For example,
     # groups[0] = {"sigma": 0.1, "ARI": 0.1, "SSE": 0.1}
-
+    
     # data for data group i: data[10000*i: 10000*(i+1)], i=1, 2, 3, 4.
     # For example,
     # groups[i] = {"sigma": 0.1, "ARI": 0.1, "SSE": 0.1}
@@ -170,7 +173,11 @@ def spectral_clustering():
     # Identify the cluster with the lowest value of ARI. This implies
     # that you set the cluster number to 5 when applying the spectral
     # algorithm.
+    ARI_max_graph: float | None
+    ARI_max_graph = max(groups.keys(), key=lambda x: abs(groups[x]['ARI']))
+    print("Cluster with highest ARI:", ARI_max_graph)
 
+    
     # Create two scatter plots using `matplotlib.pyplot`` where the two
     # axes are the parameters used, with \sigma on the horizontal axis
     # and \xi and the vertical axis. Color the points according to the SSE value
@@ -198,7 +205,15 @@ def spectral_clustering():
     # Choose the cluster with the largest value for ARI and plot it as a 2D scatter plot.
     # Do the same for the cluster with the smallest value of SSE.
     # All plots must have x and y labels, a title, and the grid overlay.
-    
+    data_slice = data[slice_size * ARI_max_graph: slice_size * (ARI_max_graph + 1)]
+    print(data_slice)
+    plt.figure()
+    plt.scatter(data_slice[:, 0], data_slice[:, 1])
+    plt.xlabel("X-Label")
+    plt.ylabel("Y-Label")
+    plt.title(f'Cluster ({ARI_max_graph})')
+    plt.grid(True)
+    plt.show
     
 
     # Plot is the return value of a call to plt.scatter()
@@ -225,7 +240,6 @@ def spectral_clustering():
     ARIs = np.array([group["ARI"] for group in groups.values()])
     SSEs = np.array([group["SSE"] for group in groups.values()])
     answers["mean_ARIs"] = np.mean(ARIs)
-
     answers["std_ARIs"] = np.std(ARIs)
     answers["mean_SSEs"] = np.mean(SSEs)
     answers["std_SSEs"] = np.std(SSEs)
@@ -239,4 +253,3 @@ if __name__ == "__main__":
     all_answers = spectral_clustering()
     with open("spectral_clustering.pkl", "wb") as fd:
         pickle.dump(all_answers, fd, protocol=pickle.HIGHEST_PROTOCOL)
-
