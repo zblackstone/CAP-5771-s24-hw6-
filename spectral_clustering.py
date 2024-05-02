@@ -118,7 +118,7 @@ def spectral_clustering():
     """
     data = np.load("question1_cluster_data.npy")
     labels = np.load("question1_cluster_labels.npy")
-    slice_size = 30
+    slice_size = 1000
     answers = {}
     num_pairs = 12
     # Return your `spectral` function
