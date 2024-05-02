@@ -156,7 +156,7 @@ def jarvis_patrick_clustering():
     """
     data = np.load("question1_cluster_data.npy")
     labels = np.load("question1_cluster_labels.npy")
-    slice_size = 1000
+    slice_size = 100
     num_pairs = 12
     answers = {}
 
