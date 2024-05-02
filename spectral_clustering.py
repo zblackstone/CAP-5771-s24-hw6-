@@ -61,7 +61,7 @@ def adjusted_rand_index(labels_true, computed_labels) -> float:
 def spectral(
     data: NDArray[np.floating], labels: NDArray[np.int32], params_dict: dict
 ) -> tuple[
-    'sigma': float, 'xi': float, 'k': int
+    'sigma': float, 'k': int
 ]:
 
     """
@@ -118,7 +118,7 @@ def spectral_clustering():
     """
     data = np.load("question1_cluster_data.npy")
     labels = np.load("question1_cluster_labels.npy")
-    slice_size = 100
+    slice_size = 1000
     answers = {}
     num_pairs = 12
     # Return your `spectral` function
@@ -239,7 +239,7 @@ def spectral_clustering():
     best_params = groups[highest_ARI[0]]
     ARIs_datasets = []
     for i in range(1, 5):
-        _, _, ARI = spectral(data[slice_size*i:slice_size*(i+1)], labels[slice_size*i:slice_size*(i+1)], best_params)
+        _, _, ARI, _ = spectral(data[slice_size*i:slice_size*(i+1)], labels[slice_size*i:slice_size*(i+1)], best_params)
         ARIs_datasets.append(ARI)
 
     ARIs = np.array([group["ARI"] for group in groups.values()])
