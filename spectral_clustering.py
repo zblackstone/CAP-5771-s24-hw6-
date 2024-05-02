@@ -87,7 +87,6 @@ def spectral(
     eigenvalues: NDArray[np.floating]
 
     sigma = params_dict['sigma']
-    xi = params_dict['xi']
     k = params_dict.get('k', 5)
 
     dist_sq = np.sum((data[:, np.newaxis, :] - data[np.newaxis, :, :]) ** 2, axis=-1)
@@ -119,7 +118,7 @@ def spectral_clustering():
     """
     data = np.load("question1_cluster_data.npy")
     labels = np.load("question1_cluster_labels.npy")
-    slice_size = 1000
+    slice_size = 100
     answers = {}
     num_pairs = 12
     # Return your `spectral` function
@@ -137,10 +136,10 @@ def spectral_clustering():
     xis = np.linspace(0.1, 10, num_pairs)  # Assuming 'xi' is another parameter you want to vary
     ks = np.linspace(1, 5, 5)
     # Perform clustering for each pair of parameters
-    for i, (sigma, xi, k) in enumerate(zip(sigmas, xis, ks)):
-        params_dict = {"sigma": sigma, "xi": xi, "k": 5}
+    for i, (sigma, k) in enumerate(zip(sigmas, ks)):
+        params_dict = {"sigma": sigma, "k": 5}
         computed_labels, SSE, ARI, eigenvalues = spectral(data[slice_size*i:slice_size*(i+1)], labels[slice_size*i:slice_size*(i+1)], params_dict)
-        groups[i] = {"sigma": sigma, "xi": xi, "ARI": ARI, "SSE": SSE}
+        groups[i] = {"sigma": sigma, "ARI": ARI, "SSE": SSE}
     highest_ARI = max(groups.items(), key=lambda x: x[1]["ARI"])
 
     sigmas_plot = [group["sigma"] for group in groups.values()]
