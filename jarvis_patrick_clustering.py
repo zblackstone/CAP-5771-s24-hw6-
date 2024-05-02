@@ -156,7 +156,7 @@ def jarvis_patrick_clustering():
     """
     data = np.load("question1_cluster_data.npy")
     labels = np.load("question1_cluster_labels.npy")
-    slice_size = 30
+    slice_size = 1000
     num_pairs = 12
     answers = {}
 
@@ -253,7 +253,7 @@ def jarvis_patrick_clustering():
     best_params = groups[highest_ARI[0]]
     ARIs_datasets = []
     for i in range(1, 5):
-        _, _, ARI, _ = jarvis_patrick(data[slice_size*i:slice_size*(i+1)], labels[slice_size*i:slice_size*(i+1)], best_params)
+        _, _, ARI = jarvis_patrick(data[slice_size*i:slice_size*(i+1)], labels[slice_size*i:slice_size*(i+1)], best_params)
         ARIs_datasets.append(ARI)
     
     ARIs = np.array([group["ARI"] for group in groups.values()])
