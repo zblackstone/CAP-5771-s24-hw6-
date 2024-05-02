@@ -239,7 +239,7 @@ def spectral_clustering():
     best_params = groups[highest_ARI[0]]
     ARIs_datasets = []
     for i in range(1, 5):
-        _, _, ARI, _ = spectral(data[slice_size*i:slice_size*(i+1)], labels[slice_size*i:slice_size*(i+1)], best_params)
+        _, _, ARI = spectral(data[slice_size*i:slice_size*(i+1)], labels[slice_size*i:slice_size*(i+1)], best_params)
         ARIs_datasets.append(ARI)
 
     ARIs = np.array([group["ARI"] for group in groups.values()])
