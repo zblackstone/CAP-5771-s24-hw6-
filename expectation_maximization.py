@@ -2,10 +2,23 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 from numpy.typing import NDArray
-from sklearn.metrics import confusion_matrix
 
 # ----------------------------------------------------------------------
+def confusion_matrix(actual, predicted):
+    # Ensure actual and predicted are the same length
+    if len(actual) != len(predicted):
+        raise ValueError("Length of actual and predicted lists must be the same.")
 
+    # Extract the unique classes
+    classes = sorted(set(actual))
+    # Create a dictionary to hold the confusion matrix
+    matrix = {c: {c_: 0 for c_ in classes} for c in classes}
+
+    # Populate the confusion matrix
+    for a, p in zip(actual, predicted):
+        matrix[a][p] += 1
+
+    return matrix
 
 def compute_SSE(data, labels):
     """
@@ -171,11 +184,11 @@ def extract_samples(
 
 
 def em_algorithm(data: NDArray[np.floating], max_iter: int = 100) -> tuple[
-    NDArray[np.floating] | None,
-    NDArray[np.floating] | None,
-    NDArray[np.floating] | None,
-    NDArray[np.floating] | None,
-    NDArray[np.floating] | None,
+    NDArray[np.floating],
+    NDArray[np.floating],
+    NDArray[np.floating],
+    NDArray[np.floating],
+    NDArray[np.floating],
 ]:
     """
     Arguments:
@@ -378,10 +391,13 @@ def gaussian_mixture():
         means_lst.append(means)
         covariances_lst.append(covariances)
         # print("==> confusion_mat: ", confusion_mat)
-        confusion_lst.append(np.array(confusion_mat))
+        confusion_lst.append(confusion_mat)
         ARI_lst.append(ARI)
         SSE_lst.append(SSE)
+    
+    confusion_dict = np.array(confusion_lst)
 
+    
     # print("===> list of SSE= ", SSE)
     # Average the results
     weights = np.array(weights_lst)
@@ -398,6 +414,14 @@ def gaussian_mixture():
     avg_SSE = np.mean(SSE_lst)
     std_SSE = np.std(SSE_lst)
 
+    confusion_array = np.empty(0)
+    for dictionary in confusion_dict:
+    # Iterate through each sub-dictionary
+        for key, sub_dict in dictionary.items():
+            # Get all values from the sub-dictionary
+            values = list(sub_dict.values())
+            confusion_array = np.append(confusion_array, values)
+            
     # list with the mean and standard deviation (over 10 trials) of the mean vector
     # of the first distribution
     answers["probability_1_mean"] = [avg_means[0].tolist(), std_means[0].tolist()]
@@ -430,14 +454,14 @@ def gaussian_mixture():
         avg_weights[1].tolist(),
         std_weights[1].tolist(),
     ]
-
+    
     # Return a 2x2 numpy Array of floats. Average of the confusion matrices of the 10 trials
-    answers["average_confusion_matrix"] = np.mean(confusion_lst, axis=0)
+    answers["average_confusion_matrix"] = np.mean(confusion_array)
 
     # Return a 2x2 numpy Array of floats. Standard deviation of the confusion matrices of the 10 trials
     # This means to take the standard deviation of each element of the confusion matrix.
     # So there are 10 (1,1) elements, and you are to average these and take the standard deviation.
-    answers["std_confusion_matrix"] = np.std(confusion_lst, axis=0)
+    answers["std_confusion_matrix"] = np.std(confusion_array, axis=0)
 
     # Return a list of 10 ARIs (float), one for each sample of 5,000 points
     answers["ARI"] = ARI_lst
